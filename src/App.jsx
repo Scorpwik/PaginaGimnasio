@@ -392,6 +392,7 @@ function LoginModal({ onClose, notify }) {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('today')
+  const [unit, setUnit] = useStoredState('weightUnit', 'kg')
   const [routines, setRoutines] = useStoredState('routines', INITIAL_ROUTINES)
   const [logs, setLogs] = useStoredState('workoutLogs', INITIAL_LOGS)
   const [restSeconds, setRestSeconds] = useStoredState('restSeconds', 90)
@@ -445,6 +446,6 @@ export default function App() {
     setLogs((items) => items.filter((item) => item.id !== id))
     if (user && remoteReady) deleteUserDocument('workoutLogs', user.uid, id).catch(() => notify('Eliminado localmente; no se pudo sincronizar', 'error'))
   }
-  const content = activeTab === 'today' ? <Today routines={routines} logs={logs} onSaveLog={saveLog} restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} onGoRoutines={() => setActiveTab('routines')} /> : activeTab === 'routines' ? <Routines routines={routines} setRoutines={updateRoutines} notify={notify} user={user} /> : activeTab === 'metrics' ? <Metrics logs={logs} routines={routines} notify={notify} user={user} onUpdateLog={updateLog} onDeleteLog={removeLog} /> : activeTab === 'photos' ? <Photos notify={notify} user={user} /> : <Profile restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} logs={logs} routines={routines} setRoutines={updateRoutines} setLogs={setLogs} />
+  const content = activeTab === 'today' ? <Today routines={routines} logs={logs} onSaveLog={saveLog} restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} onGoRoutines={() => setActiveTab('routines')} unit={unit} /> : activeTab === 'routines' ? <Routines routines={routines} setRoutines={updateRoutines} notify={notify} user={user} unit={unit} /> : activeTab === 'metrics' ? <Metrics logs={logs} routines={routines} notify={notify} user={user} onUpdateLog={updateLog} onDeleteLog={removeLog} unit={unit} /> : activeTab === 'photos' ? <Photos notify={notify} user={user} /> : <Profile restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} logs={logs} routines={routines} setRoutines={updateRoutines} setLogs={setLogs} unit={unit} />
   return <div className="app-shell"><div className="ambient ambient-one" /><div className="ambient ambient-two" /><main>{content}</main><BottomNav active={activeTab} onChange={setActiveTab} /><Toast toast={toast} onClose={() => setToast(null)} /></div>
 }
