@@ -1,0 +1,22 @@
+{
+  "name": "gym-tracker",
+  "version": "1.0.0",
+  "description": "Seguimiento de entrenamiento mobile-first con interfaz liquid glass.",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5000",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 5000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "type": "module",
+  "dependencies": {
+    "browser-image-compression": "^2.0.2",
+    "firebase": "^12.18.0",
+    "lucide-react": "^1.38.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "vite": "^8.2.2"
+  }
+}
