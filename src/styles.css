@@ -163,6 +163,70 @@ option { background: #171a27; }
 .positive { display: inline-flex; align-items: center; gap: 3px; color: var(--teal); font-size: 11px; }
 .mini-chart { display: block; width: 100%; height: 150px; overflow: visible; margin-top: 8px; }
 .chart-labels { display: flex; justify-content: space-between; color: #656979; font-size: 10px; margin-top: 7px; }
+.card-subtitle { color: var(--muted); font-size: 11px; margin: 5px 0 0; }
+.chart-period { color: #797d8d; font-size: 10px; }
+.progress-card { padding: 21px; margin-bottom: 15px; }
+.exercise-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 19px; }
+.exercise-picker-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; background: rgba(255,255,255,.035); border: 1px solid transparent; border-radius: 15px; text-align: left; transition: .2s; }
+.exercise-picker-card:hover { background: rgba(255,255,255,.07); }
+.exercise-picker-card.selected { background: var(--accent-soft); border-color: rgba(124,108,255,.42); }
+.picker-glyph { display: grid; place-items: center; width: 28px; height: 28px; color: var(--accent); background: rgba(255,255,255,.07); border-radius: 9px; font: 600 13px 'Space Grotesk'; text-transform: uppercase; }
+.picker-info { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.picker-info b { overflow: hidden; width: 100%; color: #d3d3df; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.picker-info small { color: var(--muted); font-size: 9px; }
+.picker-value { display: flex; align-items: baseline; gap: 4px; }
+.picker-value strong { color: #fff; font: 600 17px 'Space Grotesk'; }
+.picker-value small { overflow: hidden; color: #747889; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.calendar-card, .calendar-detail { padding: 21px; margin-top: 15px; }
+.calendar-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.calendar-heading h2 { font: 600 20px 'Space Grotesk'; letter-spacing: -.04em; margin: 6px 0 0; }
+.calendar-actions { display: flex; align-items: center; gap: 6px; }
+.calendar-actions .icon-button { width: 30px; height: 30px; }
+.calendar-actions .icon-button svg { transform: none; }
+.calendar-actions .icon-button .calendar-prev { transform: rotate(180deg); }
+.today-link { color: var(--accent); background: transparent; font-size: 10px; padding: 7px; }
+.calendar-weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; }
+.calendar-weekdays { margin-top: 23px; }
+.calendar-weekdays span { color: #656979; font-size: 10px; text-align: center; }
+.calendar-grid { margin-top: 7px; }
+.calendar-day, .calendar-empty { min-height: 39px; border-radius: 11px; }
+.calendar-day { position: relative; display: grid; place-items: center; color: #a9abba; background: transparent; font-size: 11px; }
+.calendar-day:hover { background: rgba(255,255,255,.06); }
+.calendar-day.is-today { color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1px rgba(124,108,255,.38); }
+.calendar-day.is-selected { color: #fff; background: var(--accent); box-shadow: 0 5px 13px rgba(124,108,255,.23); }
+.calendar-day i { position: absolute; right: 50%; bottom: 4px; width: 4px; height: 4px; background: var(--teal); border-radius: 50%; transform: translateX(50%); }
+.calendar-day.is-selected i { background: white; }
+.calendar-legend { display: flex; gap: 15px; color: var(--muted); font-size: 9px; margin-top: 14px; }
+.legend-dot { display: inline-block; width: 5px; height: 5px; margin-right: 4px; border-radius: 50%; }
+.workout-dot { background: var(--teal); }
+.today-dot { background: var(--accent); }
+.session-count { color: var(--accent); font-size: 10px; }
+.session-list { margin-top: 14px; }
+.session-row { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-top: 1px solid var(--line); }
+.session-icon { display: grid; place-items: center; width: 31px; height: 31px; color: var(--teal); background: rgba(95,212,200,.1); border-radius: 10px; }
+.session-copy { display: flex; flex: 1; flex-direction: column; gap: 3px; }
+.session-copy b { font-size: 12px; }
+.session-copy small { color: var(--muted); font-size: 10px; }
+.edit-session { display: flex; align-items: center; gap: 5px; color: var(--accent); background: var(--accent-soft); border-radius: 8px; padding: 7px 8px; font-size: 10px; }
+.workout-edit-list { display: grid; gap: 10px; max-height: 390px; overflow: auto; padding-right: 2px; }
+.workout-edit-exercise { padding: 12px; background: rgba(255,255,255,.035); border: 1px solid var(--line); border-radius: 14px; }
+.workout-edit-title { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.workout-edit-title select { flex: 1; min-width: 0; padding: 8px; font-size: 11px; }
+.delete-inline, .delete-set { display: grid; place-items: center; color: #db7481; background: rgba(255,95,113,.1); border-radius: 8px; }
+.delete-inline { width: 31px; height: 31px; }
+.edit-sets-header, .edit-set-row { display: grid; grid-template-columns: 30px 1fr 1fr 1.3fr 26px; gap: 6px; align-items: center; }
+.edit-sets-header { color: #707487; font-size: 9px; text-align: center; margin-bottom: 5px; }
+.edit-set-row { margin-top: 6px; }
+.edit-set-row > b { color: var(--muted); font-size: 11px; text-align: center; }
+.edit-set-row input, .edit-set-row select { min-width: 0; width: 100%; padding: 7px 4px; font-size: 10px; text-align: center; }
+.delete-set { width: 26px; height: 27px; }
+.action-spacer { flex: 1; }
+.history-editable { padding-right: 0; }
+.history-actions { display: flex; gap: 5px; margin-left: auto; }
+.history-actions button { display: grid; place-items: center; width: 27px; height: 27px; color: #969aaa; background: rgba(255,255,255,.055); border-radius: 8px; }
+.history-actions button:last-child { color: #db7481; }
+.rest-label { color: #b8a0df !important; }
+.rest-label svg { color: #b8a0df !important; }
 .metrics-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
 .metrics-columns > .glass-card { padding: 20px; }
 .muted-icon { color: #6f7384; }
@@ -300,6 +364,11 @@ textarea { min-height: 75px; resize: vertical; }
   .hero-badge { position: absolute; right: 18px; bottom: 18px; width: 91px; padding: 10px; }
   .hero-content { padding-right: 80px; }
   .stats-grid { gap: 7px; }
+  .exercise-picker { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .exercise-picker-card { padding: 10px; }
+  .calendar-card, .calendar-detail, .progress-card { padding: 16px; }
+  .calendar-day, .calendar-empty { min-height: 36px; }
+  .calendar-actions { gap: 2px; }
   .stat { display: block; padding: 11px; }
   .stat-icon { margin-bottom: 8px; width: 28px; height: 28px; }
   .stat strong { font-size: 17px; }

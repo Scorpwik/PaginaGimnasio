@@ -32,12 +32,13 @@ const ago = (days) => {
   return date.toISOString().slice(0, 10)
 }
 
-const exercise = (exerciseId, targetSets, targetReps, targetWeight = 0) => ({
+const exercise = (exerciseId, targetSets, targetReps, targetWeight = 0, restSeconds = 90) => ({
   exerciseId,
   name: LIBRARY.find((item) => item.id === exerciseId)?.name || exerciseId,
   targetSets,
   targetReps,
   targetWeight,
+  restSeconds,
 })
 
 export const INITIAL_ROUTINES = [
@@ -81,9 +82,9 @@ export const INITIAL_ROUTINES = [
     defaultRestSeconds: 120,
     warmup: '5–10 min · cardio suave + movilidad de cadera, rodilla y tobillo',
     exercises: [
-      exercise('goblet-squat', 4, '8–10', 24),
-      exercise('legpress', 3, '10–12', 120),
-      exercise('db-rdl', 3, '10–12', 24),
+      exercise('goblet-squat', 4, '8–10', 24, 120),
+      exercise('legpress', 3, '10–12', 120, 120),
+      exercise('db-rdl', 3, '10–12', 24, 120),
       exercise('leg-extension', 3, '12–15', 35),
       exercise('leg-curl', 3, '12–15', 35),
       exercise('calf-raise', 4, '15–20', 50),
@@ -114,9 +115,9 @@ export const INITIAL_ROUTINES = [
     defaultRestSeconds: 120,
     warmup: '5–10 min · cardio suave + movilidad de cadera, rodilla y tobillo',
     exercises: [
-      exercise('db-rdl', 4, '8–10', 26),
-      exercise('bulgarian-squat', 3, '10–12 por pierna', 16),
-      exercise('high-foot-legpress', 3, '10–12', 130),
+      exercise('db-rdl', 4, '8–10', 26, 120),
+      exercise('bulgarian-squat', 3, '10–12 por pierna', 16, 120),
+      exercise('high-foot-legpress', 3, '10–12', 130, 120),
       exercise('leg-extension', 3, '12–15', 35),
       exercise('calf-raise', 4, '15–20', 50),
       exercise('plank', 3, '30–45 seg', 0),
@@ -131,10 +132,11 @@ export const INITIAL_LOGS = [
     routineId: 'push',
     date: ago(2),
     dayLabel: 'Push',
+    durationMinutes: 58,
     completed: true,
     exercises: [
-      { exerciseId: 'bench', name: 'Press de banca', sets: [{ weight: 77.5, repsAchieved: 8, repsAttempted: 8, status: 'logrado' }, { weight: 80, repsAchieved: 7, repsAttempted: 8, status: 'parcial' }] },
-      { exerciseId: 'ohp', name: 'Press militar', sets: [{ weight: 30, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }] },
+      { exerciseId: 'db-bench', name: 'Press banca con mancuernas', sets: [{ weight: 22, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }, { weight: 24, repsAchieved: 8, repsAttempted: 10, status: 'parcial' }] },
+      { exerciseId: 'seated-db-ohp', name: 'Press militar con mancuernas, sentado', sets: [{ weight: 14, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }] },
     ],
   },
   {
@@ -142,10 +144,11 @@ export const INITIAL_LOGS = [
     routineId: 'pull',
     date: ago(4),
     dayLabel: 'Pull',
+    durationMinutes: 62,
     completed: true,
     exercises: [
-      { exerciseId: 'deadlift', name: 'Peso muerto', sets: [{ weight: 115, repsAchieved: 5, repsAttempted: 5, status: 'logrado' }] },
-      { exerciseId: 'row', name: 'Remo con barra', sets: [{ weight: 62.5, repsAchieved: 8, repsAttempted: 8, status: 'logrado' }] },
+      { exerciseId: 'lat-pulldown', name: 'Jalón al pecho', sets: [{ weight: 52.5, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }] },
+      { exerciseId: 'db-row', name: 'Remo con mancuerna o máquina', sets: [{ weight: 22, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }] },
     ],
   },
   {
@@ -153,9 +156,10 @@ export const INITIAL_LOGS = [
     routineId: 'legs',
     date: ago(6),
     dayLabel: 'Legs',
+    durationMinutes: 68,
     completed: true,
     exercises: [
-      { exerciseId: 'squat', name: 'Sentadilla con barra', sets: [{ weight: 95, repsAchieved: 8, repsAttempted: 8, status: 'logrado' }] },
+      { exerciseId: 'goblet-squat', name: 'Sentadilla goblet / Smith', sets: [{ weight: 22, repsAchieved: 10, repsAttempted: 10, status: 'logrado' }] },
     ],
   },
 ]
@@ -196,4 +200,18 @@ export function getBest(logs, exerciseId) {
     weight: Math.max(0, ...sets.map((set) => Number(set.weight) || 0)),
     reps: Math.max(0, ...sets.map((set) => Number(set.repsAchieved) || 0)),
   }
+}
+
+export function getStreak(logs) {
+  const dates = new Set(logs.filter((log) => log.completed !== false).map((log) => log.date))
+  if (!dates.size) return 0
+  const cursor = new Date()
+  cursor.setHours(12, 0, 0, 0)
+  if (!dates.has(cursor.toISOString().slice(0, 10))) cursor.setDate(cursor.getDate() - 1)
+  let streak = 0
+  while (dates.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1
+    cursor.setDate(cursor.getDate() - 1)
+  }
+  return streak
 }
