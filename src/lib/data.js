@@ -1,13 +1,29 @@
 export const LIBRARY = [
-  { id: 'bench', name: 'Press de banca', muscleGroup: 'Pecho', emoji: '◒' },
-  { id: 'squat', name: 'Sentadilla con barra', muscleGroup: 'Piernas', emoji: '◓' },
-  { id: 'deadlift', name: 'Peso muerto', muscleGroup: 'Espalda', emoji: '◐' },
-  { id: 'row', name: 'Remo con barra', muscleGroup: 'Espalda', emoji: '◑' },
-  { id: 'ohp', name: 'Press militar', muscleGroup: 'Hombros', emoji: '◒' },
-  { id: 'pullup', name: 'Dominadas', muscleGroup: 'Espalda', emoji: '◓' },
-  { id: 'legpress', name: 'Prensa de piernas', muscleGroup: 'Piernas', emoji: '◐' },
-  { id: 'curl', name: 'Curl de bíceps', muscleGroup: 'Bíceps', emoji: '◑' },
-  { id: 'triceps', name: 'Extensión de tríceps', muscleGroup: 'Tríceps', emoji: '◒' },
+  { id: 'db-bench', name: 'Press banca con mancuernas', muscleGroup: 'Pecho', emoji: '◒' },
+  { id: 'seated-db-ohp', name: 'Press militar con mancuernas, sentado', muscleGroup: 'Hombros', emoji: '◓' },
+  { id: 'incline-press', name: 'Press inclinado', muscleGroup: 'Pecho', emoji: '◐' },
+  { id: 'lateral-raise', name: 'Elevaciones laterales', muscleGroup: 'Hombros', emoji: '◑' },
+  { id: 'assisted-dip', name: 'Fondos en máquina asistida / press francés', muscleGroup: 'Tríceps', emoji: '◒' },
+  { id: 'cable-triceps', name: 'Extensión de tríceps en polea', muscleGroup: 'Tríceps', emoji: '◓' },
+  { id: 'lat-pulldown', name: 'Jalón al pecho', muscleGroup: 'Espalda', emoji: '◐' },
+  { id: 'db-row', name: 'Remo con mancuerna o máquina', muscleGroup: 'Espalda', emoji: '◑' },
+  { id: 'cable-row', name: 'Remo en polea baja', muscleGroup: 'Espalda', emoji: '◒' },
+  { id: 'face-pull', name: 'Face pull', muscleGroup: 'Hombros', emoji: '◓' },
+  { id: 'db-curl', name: 'Curl de bíceps con mancuerna', muscleGroup: 'Bíceps', emoji: '◐' },
+  { id: 'hammer-curl', name: 'Curl martillo', muscleGroup: 'Bíceps', emoji: '◑' },
+  { id: 'goblet-squat', name: 'Sentadilla goblet / Smith', muscleGroup: 'Piernas', emoji: '◒' },
+  { id: 'legpress', name: 'Prensa de piernas', muscleGroup: 'Piernas', emoji: '◓' },
+  { id: 'db-rdl', name: 'Peso muerto rumano con mancuernas', muscleGroup: 'Isquios', emoji: '◐' },
+  { id: 'leg-extension', name: 'Extensión de cuádriceps', muscleGroup: 'Cuádriceps', emoji: '◑' },
+  { id: 'leg-curl', name: 'Curl femoral', muscleGroup: 'Isquios', emoji: '◒' },
+  { id: 'calf-raise', name: 'Elevación de talones', muscleGroup: 'Pantorrillas', emoji: '◓' },
+  { id: 'incline-db-bench', name: 'Press banca inclinado con mancuernas', muscleGroup: 'Pecho', emoji: '◐' },
+  { id: 'machine-row', name: 'Remo en máquina o mancuerna', muscleGroup: 'Espalda', emoji: '◑' },
+  { id: 'closed-lat-pulldown', name: 'Jalón al pecho agarre cerrado', muscleGroup: 'Espalda', emoji: '◒' },
+  { id: 'bulgarian-squat', name: 'Sentadilla búlgara', muscleGroup: 'Piernas', emoji: '◓' },
+  { id: 'high-foot-legpress', name: 'Prensa de piernas (pie alto)', muscleGroup: 'Glúteos', emoji: '◐' },
+  { id: 'plank', name: 'Plancha', muscleGroup: 'Core', emoji: '◑' },
+  { id: 'leg-raise', name: 'Elevación de piernas', muscleGroup: 'Core', emoji: '◒' },
 ]
 
 const ago = (days) => {
@@ -16,38 +32,96 @@ const ago = (days) => {
   return date.toISOString().slice(0, 10)
 }
 
+const exercise = (exerciseId, targetSets, targetReps, targetWeight = 0) => ({
+  exerciseId,
+  name: LIBRARY.find((item) => item.id === exerciseId)?.name || exerciseId,
+  targetSets,
+  targetReps,
+  targetWeight,
+})
+
 export const INITIAL_ROUTINES = [
   {
     id: 'push',
-    name: 'Push · Pecho y hombros',
+    name: 'Push · Pecho, hombro y tríceps',
     dayOfWeek: 1,
     color: '#7c6cff',
+    defaultRestSeconds: 90,
+    warmup: '5–10 min · cardio suave + movilidad de hombros y codos',
     exercises: [
-      { exerciseId: 'bench', name: 'Press de banca', targetSets: 4, targetReps: 8, targetWeight: 80, order: 0 },
-      { exerciseId: 'ohp', name: 'Press militar', targetSets: 3, targetReps: 10, targetWeight: 32, order: 1 },
-      { exerciseId: 'triceps', name: 'Extensión de tríceps', targetSets: 3, targetReps: 12, targetWeight: 28, order: 2 },
-    ],
+      exercise('db-bench', 4, '8–10', 24),
+      exercise('seated-db-ohp', 3, '8–10', 16),
+      exercise('incline-press', 3, '10–12', 20),
+      exercise('lateral-raise', 3, '12–15', 8),
+      exercise('assisted-dip', 3, '10–12', 25),
+      exercise('cable-triceps', 3, '12–15', 25),
+    ].map((item, order) => ({ ...item, order })),
   },
   {
     id: 'pull',
     name: 'Pull · Espalda y bíceps',
-    dayOfWeek: 3,
+    dayOfWeek: 2,
     color: '#5fd4c8',
+    defaultRestSeconds: 90,
+    warmup: '5–10 min · cardio suave + movilidad de espalda y hombros',
     exercises: [
-      { exerciseId: 'deadlift', name: 'Peso muerto', targetSets: 3, targetReps: 5, targetWeight: 120, order: 0 },
-      { exerciseId: 'row', name: 'Remo con barra', targetSets: 4, targetReps: 8, targetWeight: 65, order: 1 },
-      { exerciseId: 'curl', name: 'Curl de bíceps', targetSets: 3, targetReps: 12, targetWeight: 14, order: 2 },
-    ],
+      exercise('lat-pulldown', 4, '8–10', 55),
+      exercise('db-row', 3, '10–12', 24),
+      exercise('cable-row', 3, '10–12', 50),
+      exercise('face-pull', 3, '12–15', 20),
+      exercise('db-curl', 3, '10–12', 12),
+      exercise('hammer-curl', 3, '12–15', 12),
+    ].map((item, order) => ({ ...item, order })),
   },
   {
     id: 'legs',
     name: 'Legs · Piernas',
-    dayOfWeek: 5,
+    dayOfWeek: 3,
     color: '#ffab6b',
+    defaultRestSeconds: 120,
+    warmup: '5–10 min · cardio suave + movilidad de cadera, rodilla y tobillo',
     exercises: [
-      { exerciseId: 'squat', name: 'Sentadilla con barra', targetSets: 4, targetReps: 8, targetWeight: 100, order: 0 },
-      { exerciseId: 'legpress', name: 'Prensa de piernas', targetSets: 3, targetReps: 12, targetWeight: 160, order: 1 },
-    ],
+      exercise('goblet-squat', 4, '8–10', 24),
+      exercise('legpress', 3, '10–12', 120),
+      exercise('db-rdl', 3, '10–12', 24),
+      exercise('leg-extension', 3, '12–15', 35),
+      exercise('leg-curl', 3, '12–15', 35),
+      exercise('calf-raise', 4, '15–20', 50),
+    ].map((item, order) => ({ ...item, order })),
+  },
+  {
+    id: 'upper',
+    name: 'Upper · Torso completo',
+    dayOfWeek: 4,
+    color: '#55a8ff',
+    defaultRestSeconds: 90,
+    warmup: '5–10 min · cardio suave + movilidad de hombros y espalda',
+    exercises: [
+      exercise('incline-db-bench', 3, '10–12', 20),
+      exercise('machine-row', 3, '10–12', 50),
+      exercise('seated-db-ohp', 3, '10–12', 14),
+      exercise('closed-lat-pulldown', 3, '10–12', 50),
+      exercise('lateral-raise', 3, '12–15', 8),
+      exercise('db-curl', 3, '12–15', 10),
+      exercise('cable-triceps', 3, '12–15', 22),
+    ].map((item, order) => ({ ...item, order })),
+  },
+  {
+    id: 'lower-core',
+    name: 'Lower + Core · Piernas y abdomen',
+    dayOfWeek: 5,
+    color: '#ff6b9d',
+    defaultRestSeconds: 120,
+    warmup: '5–10 min · cardio suave + movilidad de cadera, rodilla y tobillo',
+    exercises: [
+      exercise('db-rdl', 4, '8–10', 26),
+      exercise('bulgarian-squat', 3, '10–12 por pierna', 16),
+      exercise('high-foot-legpress', 3, '10–12', 130),
+      exercise('leg-extension', 3, '12–15', 35),
+      exercise('calf-raise', 4, '15–20', 50),
+      exercise('plank', 3, '30–45 seg', 0),
+      exercise('leg-raise', 3, '10–15', 0),
+    ].map((item, order) => ({ ...item, order })),
   },
 ]
 
@@ -104,6 +178,7 @@ export const writeStore = (key, value) => {
 }
 
 export const formatDay = (day) => ['Libre', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado', 'Domingo'][day] || 'Libre'
+export const repsBase = (reps) => Number(String(reps).match(/\d+/)?.[0] || 0)
 export const formatDate = (date) => new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short' }).format(new Date(`${date}T12:00:00`))
 export const today = () => new Date().toISOString().slice(0, 10)
 export const weekDay = () => {

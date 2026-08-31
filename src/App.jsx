@@ -9,7 +9,7 @@ import {
 import { isFirebaseConfigured, auth } from './firebase/config'
 import { createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword } from 'firebase/auth'
 import { loadUserCollection, saveUserDocument, uploadUserPhoto } from './firebase/sync'
-import { INITIAL_LOGS, INITIAL_ROUTINES, LIBRARY, formatDate, formatDay, getBest, getVolume, readStore, today, weekDay, writeStore } from './lib/data'
+import { INITIAL_LOGS, INITIAL_ROUTINES, LIBRARY, formatDate, formatDay, getBest, getVolume, readStore, repsBase, today, weekDay, writeStore } from './lib/data'
 import imageCompression from 'browser-image-compression'
 
 const TABS = [
@@ -93,6 +93,18 @@ function RestTimer({ seconds, onStop, onAdd }) {
   </div>
 }
 
+function ExerciseGuide({ exerciseId, name }) {
+  const info = LIBRARY.find((item) => item.id === exerciseId)
+  const muscle = info?.muscleGroup || 'Zona objetivo'
+  return <div className="exercise-guide">
+    <div className="guide-figure" aria-hidden="true">
+      <svg viewBox="0 0 76 64"><circle cx="38" cy="11" r="6" /><path d="M38 18v19M38 23l-14 9M38 23l14 9M38 37l-11 18M38 37l12 18" /><path d="M19 26h38" className="guide-equipment" /><path d="M18 22v8M58 22v8" className="guide-equipment" /></svg>
+    </div>
+    <div className="guide-copy"><span className="eyebrow">GUÍA VISUAL</span><b>{name}</b><small>Enfoca: {muscle} · movimiento controlado</small></div>
+    <a href={`https://www.google.com/search?q=${encodeURIComponent(`${name} técnica ejercicio`)}`} target="_blank" rel="noreferrer" title="Buscar técnica del ejercicio"><MoveUpRight size={15} /></a>
+  </div>
+}
+
 function Today({ routines, logs, onSaveLog, restSeconds, setRestSeconds, notify, onGoRoutines }) {
   const dayRoutine = routines.find((routine) => routine.dayOfWeek === weekDay()) || routines[0]
   const [selectedRoutineId, setSelectedRoutineId] = useState(dayRoutine?.id)
@@ -101,13 +113,13 @@ function Today({ routines, logs, onSaveLog, restSeconds, setRestSeconds, notify,
   const makeDraft = (source = existing) => routine?.exercises.map((exercise) => ({
     ...exercise,
     sets: source?.exercises.find((item) => item.exerciseId === exercise.exerciseId)?.sets || Array.from({ length: exercise.targetSets }, (_, index) => ({
-      setNumber: index + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: exercise.targetReps, status: 'pendiente',
+      setNumber: index + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: repsBase(exercise.targetReps), status: 'pendiente',
     })),
   }))
   const [draft, setDraft] = useState(() => makeDraft())
   const [activeTimer, setActiveTimer] = useState(null)
   const [openExercise, setOpenExercise] = useState(null)
-  useEffect(() => setDraft(makeDraft()), [selectedRoutineId, routine?.id])
+  useEffect(() => setDraft(makeDraft()), [selectedRoutineId, routine?.id, routine?.exercises])
   const completedSets = draft?.reduce((total, exercise) => total + exercise.sets.filter((set) => set.status === 'logrado' || set.status === 'parcial').length, 0) || 0
   const totalSets = draft?.reduce((total, exercise) => total + exercise.sets.length, 0) || 0
   const personalBests = useMemo(() => Object.fromEntries((routine?.exercises || []).map((exercise) => [exercise.exerciseId, getBest(logs, exercise.exerciseId)])), [logs, routine])
@@ -120,12 +132,12 @@ function Today({ routines, logs, onSaveLog, restSeconds, setRestSeconds, notify,
     const isDone = set.status === 'logrado' || set.status === 'parcial'
     updateSet(exercise.exerciseId, index, { status: isDone ? 'pendiente' : 'logrado', repsAchieved: set.repsAchieved || set.repsAttempted })
     if (!isDone) {
-      setActiveTimer(restSeconds)
+      setActiveTimer(routine.defaultRestSeconds || restSeconds)
       if (navigator.vibrate) navigator.vibrate(50)
     }
   }
   const addSet = (exerciseId) => setDraft((items) => items.map((exercise) => exercise.exerciseId !== exerciseId ? exercise : {
-    ...exercise, sets: [...exercise.sets, { setNumber: exercise.sets.length + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: exercise.targetReps, status: 'pendiente' }],
+    ...exercise, sets: [...exercise.sets, { setNumber: exercise.sets.length + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: repsBase(exercise.targetReps), status: 'pendiente' }],
   }))
   const finish = () => {
     if (!routine) return
@@ -140,13 +152,14 @@ function Today({ routines, logs, onSaveLog, restSeconds, setRestSeconds, notify,
       <div className="hero-badge"><Flame size={16} /><b>{Math.max(0, 12 - logs.length)}<small> días</small></b><span>racha actual</span></div>
     </GlassCard>
     <div className="section-heading"><div><span className="eyebrow">PLAN DE HOY</span><h2>Tu entrenamiento</h2></div><select value={selectedRoutineId} onChange={(event) => setSelectedRoutineId(event.target.value)} aria-label="Elegir rutina">{routines.map((item) => <option value={item.id} key={item.id}>{item.name.split('·')[0].trim()}</option>)}</select></div>
+    <GlassCard className="warmup-card"><div className="warmup-icon"><Zap size={18} /></div><div><span className="eyebrow">ANTES DE EMPEZAR</span><b>Calentamiento · 5–10 min</b><p>Cardio suave + movilidad articular de la zona a trabajar.</p></div><span className="warmup-tag">Todos los días</span></GlassCard>
     <div className="workout-list">{routine.exercises.map((exercise, exerciseIndex) => {
       const best = personalBests[exercise.exerciseId] || { weight: 0, reps: 0 }
       const previous = logs.filter((log) => log.exercises.some((item) => item.exerciseId === exercise.exerciseId)).sort((a, b) => b.date.localeCompare(a.date))[0]?.exercises.find((item) => item.exerciseId === exercise.exerciseId)
       const isOpen = openExercise === exercise.exerciseId || openExercise === null
       return <GlassCard className={`exercise-card ${isOpen ? 'exercise-open' : ''}`} key={exercise.exerciseId}>
         <button className="exercise-summary" onClick={() => setOpenExercise(isOpen && openExercise !== null ? null : exercise.exerciseId)}><span className="exercise-number">{String(exerciseIndex + 1).padStart(2, '0')}</span><span className="exercise-title"><b>{exercise.name}</b><small>{exercise.targetSets} series · {exercise.targetReps} reps · objetivo {exercise.targetWeight} kg</small></span><span className="exercise-status">{draft[exerciseIndex]?.sets.filter((set) => set.status !== 'pendiente').length || 0}/{draft[exerciseIndex]?.sets.length || 0}</span><ChevronRight size={17} className={isOpen ? 'rotate-90' : ''} /></button>
-        {isOpen && <div className="exercise-body"><div className="reference-row"><span><TrendingUp size={14} /> Última vez {previous?.sets?.[0] ? `${previous.sets[0].weight} kg × ${previous.sets[0].repsAchieved}` : 'sin registro'}</span><span className="pr-label"><Trophy size={13} /> PR {best.weight || exercise.targetWeight} kg</span></div><div className="sets-header"><span>Serie</span><span>Kg</span><span>Reps</span><span>Estado</span></div>{draft[exerciseIndex]?.sets.map((set, index) => <div className={`set-row ${set.status !== 'pendiente' ? `set-${set.status}` : ''}`} key={`${exercise.exerciseId}-${index}`}><b>{index + 1}</b><input type="number" inputMode="decimal" value={set.weight} onChange={(event) => updateSet(exercise.exerciseId, index, { weight: event.target.value })} aria-label={`Peso serie ${index + 1}`} /><input type="number" inputMode="numeric" placeholder={String(exercise.targetReps)} value={set.repsAchieved} onChange={(event) => updateSet(exercise.exerciseId, index, { repsAchieved: event.target.value })} aria-label={`Repeticiones serie ${index + 1}`} /><button className="set-check" onClick={() => toggleSet(exercise, index)} aria-label={`Marcar serie ${index + 1}`}>{set.status === 'logrado' ? <Check size={17} /> : set.status === 'parcial' ? <span>½</span> : <span />}</button></div>)}<button className="add-set" onClick={() => addSet(exercise.exerciseId)}><Plus size={14} /> Añadir serie</button></div>}
+        {isOpen && <div className="exercise-body"><ExerciseGuide exerciseId={exercise.exerciseId} name={exercise.name} /><div className="reference-row"><span><TrendingUp size={14} /> Última vez {previous?.sets?.[0] ? `${previous.sets[0].weight} kg × ${previous.sets[0].repsAchieved}` : 'sin registro'}</span><span className="pr-label"><Trophy size={13} /> PR {best.weight || exercise.targetWeight} kg</span></div><div className="sets-header"><span>Serie</span><span>Kg</span><span>Reps</span><span>Estado</span></div>{draft[exerciseIndex]?.sets.map((set, index) => <div className={`set-row ${set.status !== 'pendiente' ? `set-${set.status}` : ''}`} key={`${exercise.exerciseId}-${index}`}><b>{index + 1}</b><input type="number" inputMode="decimal" value={set.weight} onChange={(event) => updateSet(exercise.exerciseId, index, { weight: event.target.value })} aria-label={`Peso serie ${index + 1}`} /><input type="number" inputMode="numeric" placeholder={String(exercise.targetReps)} value={set.repsAchieved} onChange={(event) => updateSet(exercise.exerciseId, index, { repsAchieved: event.target.value })} aria-label={`Repeticiones serie ${index + 1}`} /><button className="set-check" onClick={() => toggleSet(exercise, index)} aria-label={`Marcar serie ${index + 1}`}>{set.status === 'logrado' ? <Check size={17} /> : set.status === 'parcial' ? <span>½</span> : <span />}</button></div>)}<button className="add-set" onClick={() => addSet(exercise.exerciseId)}><Plus size={14} /> Añadir serie</button></div>}
       </GlassCard>
     })}</div>
     <div className="sticky-action"><Button className="finish-button" onClick={finish}><Check size={18} /> Finalizar entrenamiento</Button></div>
@@ -171,7 +184,7 @@ function RoutineEditor({ routine, onSave, onClose, user }) {
   return <Modal title={routine ? 'Editar rutina' : 'Nueva rutina'} onClose={onClose} wide>
     <div className="form-grid"><label>Nombre de rutina<input autoFocus value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Ej. Full body · fuerza" /></label><label>Día asignado<select value={form.dayOfWeek} onChange={(event) => setForm({ ...form, dayOfWeek: Number(event.target.value) })}>{[1, 2, 3, 4, 5, 6, 7].map((day) => <option key={day} value={day}>{formatDay(day)}</option>)}</select></label></div>
     <div className="editor-label"><span>Ejercicios <small>{form.exercises.length} añadidos</small></span><div className="color-picker">{ACCENTS.map((color) => <button key={color} className={form.color === color ? 'selected' : ''} style={{ background: color }} onClick={() => setForm({ ...form, color })} aria-label="Elegir color" />)}</div></div>
-    <div className="editor-exercises">{form.exercises.length === 0 ? <p className="muted center">Añade ejercicios desde la librería para comenzar.</p> : form.exercises.map((exercise, index) => <div className="editor-exercise" key={exercise.exerciseId}><div className="editor-exercise-name"><span>{String(index + 1).padStart(2, '0')}</span><b>{exercise.name}</b></div><div className="editor-fields"><label>Series<input type="number" min="1" value={exercise.targetSets} onChange={(event) => updateExercise(exercise.exerciseId, 'targetSets', Number(event.target.value))} /></label><label>Reps<input type="number" min="1" value={exercise.targetReps} onChange={(event) => updateExercise(exercise.exerciseId, 'targetReps', Number(event.target.value))} /></label><label>Kg<input type="number" min="0" value={exercise.targetWeight} onChange={(event) => updateExercise(exercise.exerciseId, 'targetWeight', Number(event.target.value))} /></label></div><div className="editor-row-actions"><IconButton label="Subir ejercicio" onClick={() => moveExercise(index, -1)}><ArrowUp size={14} /></IconButton><IconButton label="Bajar ejercicio" onClick={() => moveExercise(index, 1)}><ArrowDown size={14} /></IconButton><IconButton label="Quitar ejercicio" onClick={() => setForm({ ...form, exercises: form.exercises.filter((item) => item.exerciseId !== exercise.exerciseId) })}><Trash2 size={14} /></IconButton></div></div>)}</div>
+    <div className="editor-exercises">{form.exercises.length === 0 ? <p className="muted center">Añade ejercicios desde la librería para comenzar.</p> : form.exercises.map((exercise, index) => <div className="editor-exercise" key={exercise.exerciseId}><div className="editor-exercise-name"><span>{String(index + 1).padStart(2, '0')}</span><b>{exercise.name}</b></div><div className="editor-fields"><label>Series<input type="number" min="1" value={exercise.targetSets} onChange={(event) => updateExercise(exercise.exerciseId, 'targetSets', Number(event.target.value))} /></label><label>Reps<input type="text" value={exercise.targetReps} onChange={(event) => updateExercise(exercise.exerciseId, 'targetReps', event.target.value)} /></label><label>Kg<input type="number" min="0" value={exercise.targetWeight} onChange={(event) => updateExercise(exercise.exerciseId, 'targetWeight', Number(event.target.value))} /></label></div><div className="editor-row-actions"><IconButton label="Subir ejercicio" onClick={() => moveExercise(index, -1)}><ArrowUp size={14} /></IconButton><IconButton label="Bajar ejercicio" onClick={() => moveExercise(index, 1)}><ArrowDown size={14} /></IconButton><IconButton label="Quitar ejercicio" onClick={() => setForm({ ...form, exercises: form.exercises.filter((item) => item.exerciseId !== exercise.exerciseId) })}><Trash2 size={14} /></IconButton></div></div>)}</div>
     <div className="library-box"><div className="search-field"><SlidersHorizontal size={15} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar o crear ejercicio..." /></div>{query && filtered.slice(0, 4).map((item) => <button className="library-result" key={item.id} onClick={() => { addExercise(item); setQuery('') }}><span className="mini-icon">{item.emoji}</span><span><b>{item.name}</b><small>{item.muscleGroup}</small></span><Plus size={16} /></button>)}{query && !filtered.length && <button className="library-result" onClick={createCustom}><span className="mini-icon"><Sparkles size={14} /></span><span><b>Crear “{query}”</b><small>Ejercicio personalizado</small></span><Plus size={16} /></button>}</div>
     <div className="modal-actions"><Button variant="ghost" onClick={onClose}>Cancelar</Button><Button onClick={() => form.name.trim() && onSave({ ...form, id: form.id || `routine-${Date.now()}` })}><Save size={16} /> Guardar rutina</Button></div>
   </Modal>
@@ -234,7 +247,7 @@ function Photos({ notify, user }) {
       const dataUrl = await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(reader.result); reader.onerror = reject; reader.readAsDataURL(compressed) })
       const photo = { id: `photo-${Date.now()}`, date: today(), imageUrl: dataUrl, tag, size: compressed.size }
       if (user) {
-        const remoteUrl = await uploadUserPhoto(user.uid, compressed, photo.id)
+      const remoteUrl = await uploadUserPhoto(user.uid, compressed, photo.id)
         if (remoteUrl) photo.imageUrl = remoteUrl
         await saveUserDocument('progressPhotos', user.uid, photo)
       }
@@ -282,6 +295,14 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const [user, setUser] = useState(null)
   const [remoteReady, setRemoteReady] = useState(false)
+  useEffect(() => {
+    if (readStore('routine-plan-v2', false)) return
+    const seededIds = new Set(INITIAL_ROUTINES.map((item) => item.id))
+    const next = routines.map((routine) => seededIds.has(routine.id) ? INITIAL_ROUTINES.find((item) => item.id === routine.id) : routine)
+    INITIAL_ROUTINES.forEach((routine) => { if (!next.some((item) => item.id === routine.id)) next.push(routine) })
+    setRoutines(next)
+    writeStore('routine-plan-v2', true)
+  }, [])
   const notify = (message, type = 'success') => setToast({ message, type })
   useEffect(() => {
     if (!auth) return undefined

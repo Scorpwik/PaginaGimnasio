@@ -56,6 +56,12 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .hero-badge b { font: 600 25px 'Space Grotesk'; color: #fff; margin-top: 8px; }
 .hero-badge b small { font: 12px 'DM Sans'; color: var(--orange); }
 .hero-badge span { color: #a59c91; font-size: 10px; text-align: right; }
+.warmup-card { display: flex; align-items: center; gap: 12px; padding: 14px 17px; margin-bottom: 13px; border-color: rgba(255,171,107,.18); background: linear-gradient(110deg, rgba(255,171,107,.08), rgba(255,255,255,.025)); }
+.warmup-icon { display: grid; place-items: center; width: 35px; height: 35px; color: var(--orange); background: rgba(255,171,107,.12); border-radius: 11px; }
+.warmup-card > div:nth-child(2) { flex: 1; }
+.warmup-card b { display: block; color: #e7d9cc; font-size: 12px; margin: 4px 0; }
+.warmup-card p { color: #918981; font-size: 10px; margin: 0; }
+.warmup-tag { color: #a99888; font-size: 9px; white-space: nowrap; }
 
 .section-heading, .card-heading, .routine-intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; }
 .section-heading { margin-bottom: 15px; }
@@ -76,6 +82,14 @@ option { background: #171a27; }
 .exercise-summary > svg { color: #73778b; transition: transform .2s; }
 .rotate-90 { transform: rotate(90deg); }
 .exercise-body { border-top: 1px solid var(--line); padding: 14px 18px 18px; }
+.exercise-guide { display: flex; align-items: center; gap: 10px; padding: 9px; margin-bottom: 14px; background: rgba(124,108,255,.055); border: 1px solid rgba(124,108,255,.14); border-radius: 14px; }
+.guide-figure { display: grid; place-items: center; width: 54px; height: 45px; color: var(--accent); background: var(--accent-soft); border-radius: 10px; flex: none; }
+.guide-figure svg { width: 49px; height: 39px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+.guide-figure .guide-equipment { stroke: var(--orange); stroke-width: 2.8; }
+.guide-copy { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 3px; }
+.guide-copy b { overflow: hidden; color: #d7d4e6; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.guide-copy small { overflow: hidden; color: var(--muted); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.exercise-guide > a { display: grid; place-items: center; width: 28px; height: 28px; color: var(--accent); background: rgba(124,108,255,.12); border-radius: 8px; flex: none; }
 .reference-row { display: flex; justify-content: space-between; gap: 8px; color: #808496; font-size: 11px; margin-bottom: 15px; }
 .reference-row span { display: flex; align-items: center; gap: 5px; }
 .reference-row svg { color: var(--teal); }
