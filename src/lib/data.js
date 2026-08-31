@@ -190,6 +190,16 @@ export const weekDay = () => {
   return day === 0 ? 7 : day
 }
 
+export const KG_TO_LB = 2.20462
+export const displayWeight = (value, unit = 'kg') => {
+  const converted = Number(value || 0) * (unit === 'lb' ? KG_TO_LB : 1)
+  return Number.isInteger(converted) ? String(converted) : converted.toFixed(1)
+}
+export const parseWeight = (value, unit = 'kg') => {
+  const parsed = Number(value) || 0
+  return unit === 'lb' ? parsed / KG_TO_LB : parsed
+}
+
 export function getVolume(logs) {
   return logs.reduce((total, log) => total + log.exercises.reduce((exerciseTotal, exercise) => exerciseTotal + exercise.sets.reduce((setTotal, set) => setTotal + Number(set.weight || 0) * Number(set.repsAchieved || 0), 0), 0), 0)
 }
