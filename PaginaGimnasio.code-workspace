@@ -1,0 +1,29 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings/.git"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/src"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/.git"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/dist"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/public"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/.github"
+		},
+		{
+			"path": "../../../Downloads/SpotlessFakeThings (1)/SpotlessFakeThings/.agents"
+		}
+	],
+	"settings": {}
+}

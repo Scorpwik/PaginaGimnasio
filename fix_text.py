@@ -1,0 +1,72 @@
+from pathlib import Path
+
+p = Path(r"c:\Users\Administrador\Documents\PaginaGimnasio\PaginaGimnasio\src\App.jsx")
+text = p.read_text(encoding="utf-8")
+replacements = {
+    "Â·": "·",
+    "â€“": "–",
+    "â€”": "—",
+    "â€¢": "•",
+    "Â¡": "¡",
+    "Â¿": "¿",
+    "Ã¡": "á",
+    "Ã©": "é",
+    "Ã­": "í",
+    "Ã³": "ó",
+    "Ãº": "ú",
+    "Ã¼": "ü",
+    "Ã": "Á",
+    "Ã‰": "É",
+    "Ã": "Í",
+    "Ã“": "Ó",
+    "Ãš": "Ú",
+    "Ãœ": "Ü",
+    "Ã±": "ñ",
+    "Ã‘": "Ñ",
+    "AÃºn": "Aún",
+    "AÃ±adido": "Añadido",
+    "AÃ±ade": "Añade",
+    "AÃ±adir": "Añadir",
+    "AÃ±adidos": "Añadidos",
+    "aÃ±adidos": "añadidos",
+    "aÃ±adir": "añadir",
+    "librerÃ­a": "librería",
+    "librerÃ­a.": "librería.",
+    "sesiÃ³n": "sesión",
+    "progresiÃ³n": "progresión",
+    "visiÃ³n": "visión",
+    "mÃ©tricas": "métricas",
+    "MÃ©tricas": "Métricas",
+    "MÃ©trica": "Métrica",
+    "NavegaciÃ³n principal": "Navegación principal",
+    "GuÃ­a": "Guía",
+    "guÃ­a": "guía",
+    "Ãœltimo": "Último",
+    "Ãšltimo": "Último",
+    "Ãšltima": "Última",
+    "dÃ­as": "días",
+    "dÃ­a": "día",
+    "RÃ¡cha": "Racha",
+    "Todos los dÃ­as": "Todos los días",
+    "AÃºn no hay rutinas": "Aún no hay rutinas",
+    "AÃ±ade tus medidas": "Añade tus medidas",
+    "AÃ±ade tu primer peso": "Añade tu primer peso",
+    "AÃ±ade la configuraciÃ³n de Firebase para iniciar sesiÃ³n": "Añade la configuración de Firebase para iniciar sesión",
+    "MÃ©trica guardada localmente; no se pudo sincronizar": "Métrica guardada localmente; no se pudo sincronizar",
+    "MÃ©trica corporal aÃ±adida": "Métrica corporal añadida",
+    "AÃ±adir peso": "Añadir peso",
+    "AÃ±ade ejercicios desde la librerÃ­a para comenzar": "Añade ejercicios desde la librería para comenzar",
+    "Ã—": "×",
+    "Â½": "½",
+    "ï»¿": "",
+    "Ãºltima": "última",
+    "AÃºn": "Aún",
+    "FALLO": "OK",
+}
+
+for k, v in replacements.items():
+    text = text.replace(k, v)
+
+p.write_text(text, encoding="utf-8")
+print("updated App.jsx")
+print("bad chars left?", any(ch in text for ch in ["Ã", "Â", "â"]))

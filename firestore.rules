@@ -1,33 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-    }
-    match /routines/{routineId} {
-      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-    }
-    match /workoutLogs/{logId} {
-      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-    }
-    match /bodyMetrics/{entryId} {
-      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-    }
-    match /progressPhotos/{photoId} {
-      allow read, delete: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.userId == request.auth.uid && request.resource.data.userId == request.auth.uid;
-    }
-    match /exerciseLibrary/{exerciseId} {
-      allow read: if true;
-      allow create: if request.auth != null && request.resource.data.isCustom == true && request.resource.data.createdBy == request.auth.uid;
-      allow update, delete: if request.auth != null && resource.data.isCustom == true && resource.data.createdBy == request.auth.uid;
+    match /users/me/{document=**} {
+      allow read, write: if true;
     }
   }
 }
