@@ -99,54 +99,117 @@ function ExerciseGuide({ exerciseId, name }) {
   return <><button type="button" className="guide-button" onClick={(event) => { event.stopPropagation(); const target = document.getElementById(`guide-${exerciseId}`); target?.showModal?.() }}><CircleHelp size={13} /> Guía</button><dialog id={`guide-${exerciseId}`} className="guide-dialog"><div className="guide-dialog-content"><div className="modal-header"><div><div className="eyebrow">GUÍA VISUAL</div><h2>{name}</h2></div><button type="button" className="icon-button" onClick={() => document.getElementById(`guide-${exerciseId}`)?.close()} aria-label="Cerrar guía"><X size={17} /></button></div><div className="guide-figure guide-figure-large" aria-hidden="true"><svg viewBox="0 0 76 64"><circle cx="38" cy="11" r="6" /><path d="M38 18v19M38 23l-14 9M38 23l14 9M38 37l-11 18M38 37l12 18" /><path d="M19 26h38" className="guide-equipment" /><path d="M18 22v8M58 22v8" className="guide-equipment" /></svg></div><p className="guide-dialog-copy">Enfoca: <b>{muscle}</b> · movimiento controlado y rango cómodo.</p><a className="guide-search" href={`https://www.google.com/search?q=${encodeURIComponent(`${name} técnica ejercicio`)}`} target="_blank" rel="noreferrer"><MoveUpRight size={14} /> Buscar técnica detallada</a></div></dialog></>
 }
 
-function Today({ routines, logs, onSaveLog, restSeconds, notify, onGoRoutines, unit }) {
+function Today({ routines, logs, onSaveLog, restSeconds, notify, onGoRoutines, unit, selectedRoutineId, onSelectRoutine }) {
   const dayRoutine = routines.find((routine) => routine.dayOfWeek === weekDay()) || routines[0]
-  const [selectedRoutineId, setSelectedRoutineId] = useState(dayRoutine?.id)
-  const routine = routines.find((item) => item.id === selectedRoutineId) || dayRoutine
+  const [localRoutineId, setLocalRoutineId] = useState(selectedRoutineId || dayRoutine?.id)
+  const activeRoutineId = selectedRoutineId || localRoutineId || dayRoutine?.id
+  const routine = routines.find((item) => item.id === activeRoutineId) || dayRoutine
   const existing = logs.find((log) => log.date === today() && log.routineId === routine?.id)
-  const makeDraft = (source = existing) => routine?.exercises.map((exercise) => ({
-    ...exercise,
-    sets: source?.exercises.find((item) => item.exerciseId === exercise.exerciseId)?.sets.map((set, index) => ({ ...set, setNumber: set.setNumber || index + 1, setType: set.setType || 'normal' })) || Array.from({ length: exercise.targetSets }, (_, index) => ({
-      setNumber: index + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: repsBase(exercise.targetReps), status: 'pendiente', setType: 'normal',
-    })),
-  }))
-  const [draft, setDraft] = useState(() => makeDraft())
   const [durationMinutes, setDurationMinutes] = useState(existing?.durationMinutes || 60)
+  const [openExercise, setOpenExercise] = useState(routine?.exercises?.[0]?.exerciseId || '')
+
+  const makeDraft = (source = existing) => {
+    if (!routine) return []
+    return routine.exercises.map((exercise) => {
+      const saved = source?.exercises?.find((item) => item.exerciseId === exercise.exerciseId)
+      return {
+        ...exercise,
+        restSeconds: exercise.restSeconds || 90,
+        sets: saved?.sets?.map((set, index) => ({ ...set, setNumber: set.setNumber || index + 1, setType: set.setType || 'normal' })) || Array.from({ length: exercise.targetSets }, (_, index) => ({
+          setNumber: index + 1,
+          weight: exercise.targetWeight,
+          repsAchieved: '',
+          repsAttempted: repsBase(exercise.targetReps),
+          status: 'pendiente',
+          setType: 'normal',
+        })),
+      }
+    })
+  }
+
+  const [draft, setDraft] = useState(() => makeDraft())
+  const [elapsedSeconds, setElapsedSeconds] = useState(existing?.durationMinutes ? existing.durationMinutes * 60 : 0)
+  const [sessionRunning, setSessionRunning] = useState(false)
   const [activeTimer, setActiveTimer] = useState(null)
-  const [openExercise, setOpenExercise] = useState(null)
+  const [openExercises, setOpenExercises] = useState(() => new Set((routine?.exercises || []).map((exercise) => exercise.exerciseId)))
   const [openSetMenu, setOpenSetMenu] = useState(null)
-  useEffect(() => setDraft(makeDraft()), [selectedRoutineId, routine?.id, routine?.exercises])
-  useEffect(() => setDurationMinutes(existing?.durationMinutes || 60), [existing?.id, selectedRoutineId])
-  const completedSets = draft?.reduce((total, exercise) => total + exercise.sets.filter((set) => set.status === 'logrado' || set.status === 'parcial').length, 0) || 0
-  const totalSets = draft?.reduce((total, exercise) => total + exercise.sets.length, 0) || 0
+
+  useEffect(() => {
+    if (!routine) return
+    setLocalRoutineId(activeRoutineId || routine.id)
+    setDraft(makeDraft())
+    setElapsedSeconds(existing?.durationMinutes ? existing.durationMinutes * 60 : 0)
+    setDurationMinutes(existing?.durationMinutes || 60)
+    setOpenExercise(routine.exercises?.[0]?.exerciseId || '')
+    setOpenSetMenu(null)
+    setOpenExercises((current) => {
+      const next = new Set(current)
+      routine.exercises.forEach((exercise) => next.add(exercise.exerciseId))
+      return next
+    })
+  }, [selectedRoutineId, activeRoutineId, routine?.id, routine?.exercises, existing?.id])
+
+  useEffect(() => {
+    if (!sessionRunning) return undefined
+    const timer = setInterval(() => setElapsedSeconds((value) => value + 1), 1000)
+    return () => clearInterval(timer)
+  }, [sessionRunning])
+
+  const completedSets = draft.reduce((total, exercise) => total + exercise.sets.filter((set) => set.status === 'logrado' || set.status === 'parcial').length, 0)
+  const totalSets = draft.reduce((total, exercise) => total + exercise.sets.length, 0)
+  const sessionMinutes = Math.max(1, Math.ceil(elapsedSeconds / 60))
   const personalBests = useMemo(() => Object.fromEntries((routine?.exercises || []).map((exercise) => [exercise.exerciseId, getBest(logs, exercise.exerciseId)])), [logs, routine])
 
   const updateSet = (exerciseId, index, values) => setDraft((items) => items.map((exercise) => exercise.exerciseId !== exerciseId ? exercise : {
-    ...exercise, sets: exercise.sets.map((set, setIndex) => setIndex === index ? { ...set, ...values } : set),
+    ...exercise,
+    sets: exercise.sets.map((set, setIndex) => setIndex === index ? { ...set, ...values } : set),
   }))
+
   const toggleSet = (exercise, index) => {
     const set = exercise?.sets?.[index]
     if (!set) return
     const isDone = set.status === 'logrado' || set.status === 'parcial'
-    updateSet(exercise.exerciseId, index, { status: isDone ? 'pendiente' : 'logrado', repsAchieved: set.repsAchieved || set.repsAttempted })
-    if (!isDone) {
+    const nextStatus = isDone ? 'pendiente' : 'logrado'
+    updateSet(exercise.exerciseId, index, {
+      status: nextStatus,
+      repsAchieved: nextStatus === 'logrado' ? (set.repsAchieved || set.repsAttempted || exercise.targetReps) : set.repsAchieved,
+    })
+    if (nextStatus === 'logrado') {
+      setSessionRunning(true)
       setActiveTimer(exercise.restSeconds || restSeconds || 90)
       if (navigator.vibrate) navigator.vibrate(50)
     }
   }
+
+  const updateExerciseRest = (exerciseId, value) => setDraft((items) => items.map((exercise) => exercise.exerciseId !== exerciseId ? exercise : {
+    ...exercise,
+    restSeconds: Number(value) || 30,
+  }))
+
   const removeSet = (exerciseId, index) => setDraft((items) => items.map((exercise) => exercise.exerciseId !== exerciseId ? exercise : {
-    ...exercise, sets: exercise.sets.filter((_, setIndex) => setIndex !== index).map((set, setIndex) => ({ ...set, setNumber: setIndex + 1 })),
+    ...exercise,
+    sets: exercise.sets.filter((_, setIndex) => setIndex !== index).map((set, setIndex) => ({ ...set, setNumber: setIndex + 1 })),
   }))
   const setType = (exerciseId, index, value) => {
     updateSet(exerciseId, index, { setType: value })
     setOpenSetMenu(null)
   }
   const addSet = (exerciseId) => setDraft((items) => items.map((exercise) => exercise.exerciseId !== exerciseId ? exercise : {
-    ...exercise, sets: [...exercise.sets, { setNumber: exercise.sets.length + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: repsBase(exercise.targetReps), status: 'pendiente', setType: 'normal' }],
+    ...exercise,
+    sets: [...exercise.sets, { setNumber: exercise.sets.length + 1, weight: exercise.targetWeight, repsAchieved: '', repsAttempted: repsBase(exercise.targetReps), status: 'pendiente', setType: 'normal' }],
   }))
   const finish = () => {
     if (!routine) return
-    onSaveLog({ id: existing?.id || `log-${Date.now()}`, routineId: routine.id, date: today(), dayLabel: routine.name.split('·')[0].trim(), durationMinutes: Number(durationMinutes) || 60, completed: true, exercises: draft.map(({ exerciseId, name, sets }) => ({ exerciseId, name, sets: sets.filter((set) => set.status !== 'pendiente') })) })
+    setSessionRunning(false)
+    onSaveLog({
+      id: existing?.id || `log-${Date.now()}`,
+      routineId: routine.id,
+      date: today(),
+      dayLabel: routine.name.split('·')[0].trim(),
+      durationMinutes: Number(sessionMinutes) || 1,
+      completed: true,
+      exercises: draft.map(({ exerciseId, name, sets, restSeconds: exerciseRestSeconds }) => ({ exerciseId, name, restSeconds: exerciseRestSeconds, sets: sets.filter((set) => set.status !== 'pendiente') })),
+    })
     notify('Sesión guardada. Buen trabajo.')
   }
   if (!routine) return <EmptyState icon={Dumbbell} title="Tu primera rutina te espera" description="Crea una rutina para que Gym Tracker prepare automáticamente tu entrenamiento de hoy." action={<Button onClick={onGoRoutines}><Plus size={16} /> Crear rutina</Button>} />
@@ -156,14 +219,14 @@ function Today({ routines, logs, onSaveLog, restSeconds, notify, onGoRoutines, u
       <div className="hero-glow" /><div className="hero-content"><div className="eyebrow accent-eyebrow"><span className="pulse-dot" /> SESIÓN ACTIVA</div><h2>{routine.name}</h2><p>{completedSets} de {totalSets} series completadas · {Math.round((completedSets / Math.max(totalSets, 1)) * 100)}% del entrenamiento</p><div className="progress-track"><span style={{ width: `${(completedSets / Math.max(totalSets, 1)) * 100}%` }} /></div></div>
       <div className="hero-badge"><Flame size={16} /><b>{getStreak(logs)}<small> días</small></b><span>racha actual</span></div>
     </GlassCard>
-    <div className="section-heading"><div><span className="eyebrow">PLAN DE HOY</span><h2>Tu entrenamiento</h2></div><div className="today-controls"><label>Tiempo<input type="number" min="1" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} aria-label="Duración del entrenamiento" /></label><span className="unit-badge">{unit.toUpperCase()}</span><select value={selectedRoutineId} onChange={(event) => setSelectedRoutineId(event.target.value)} aria-label="Elegir rutina">{routines.map((item) => <option value={item.id} key={item.id}>{item.name.split('·')[0].trim()}</option>)}</select></div></div>
+    <div className="section-heading"><div><span className="eyebrow">PLAN DE HOY</span><h2>Tu entrenamiento</h2></div><div className="today-controls"><label>Tiempo<input type="number" min="1" value={durationMinutes} onChange={(event) => setDurationMinutes(event.target.value)} aria-label="Duración del entrenamiento" /></label><span className="unit-badge">{unit.toUpperCase()}</span><select value={activeRoutineId} onChange={(event) => onSelectRoutine(event.target.value)} aria-label="Elegir rutina">{routines.map((item) => <option value={item.id} key={item.id}>{item.name.split('·')[0].trim()}</option>)}</select></div></div>
     <GlassCard className="warmup-card"><div className="warmup-icon"><Zap size={18} /></div><div><span className="eyebrow">ANTES DE EMPEZAR</span><b>Calentamiento · 5–10 min</b><p>{routine.warmup || 'Cardio suave + movilidad articular de la zona a trabajar.'}</p></div><span className="warmup-tag">Todos los días</span></GlassCard>
     <div className="workout-list">{routine.exercises.map((exercise, exerciseIndex) => {
       const best = personalBests[exercise.exerciseId] || { weight: 0, reps: 0 }
       const previous = logs.filter((log) => log.exercises.some((item) => item.exerciseId === exercise.exerciseId)).sort((a, b) => b.date.localeCompare(a.date))[0]?.exercises.find((item) => item.exerciseId === exercise.exerciseId)
-      const isOpen = openExercise === exercise.exerciseId || openExercise === null
+      const isOpen = openExercise === exercise.exerciseId
       return <GlassCard className={`exercise-card ${isOpen ? 'exercise-open' : ''}`} key={exercise.exerciseId}>
-        <div className="exercise-summary"><button className="exercise-toggle" onClick={() => setOpenExercise(isOpen && openExercise !== null ? null : exercise.exerciseId)}><span className="exercise-number">{String(exerciseIndex + 1).padStart(2, '0')}</span><span className="exercise-title"><b>{exercise.name}</b><small>{exercise.targetSets} series · {exercise.targetReps} reps · objetivo {exercise.targetWeight ? `${displayWeight(exercise.targetWeight, unit)} ${unit}` : 'peso corporal'} · descanso {exercise.restSeconds || 90}s</small></span><span className="exercise-status">{draft[exerciseIndex]?.sets.filter((set) => set.status !== 'pendiente').length || 0}/{draft[exerciseIndex]?.sets.length || 0}</span><ChevronRight size={17} className={isOpen ? 'rotate-90' : ''} /></button><ExerciseGuide exerciseId={exercise.exerciseId} name={exercise.name} /></div>
+        <div className="exercise-summary"><button className="exercise-toggle" onClick={() => setOpenExercise(isOpen ? '' : exercise.exerciseId)}><span className="exercise-number">{String(exerciseIndex + 1).padStart(2, '0')}</span><span className="exercise-title"><b>{exercise.name}</b><small>{exercise.targetSets} series · {exercise.targetReps} reps · objetivo {exercise.targetWeight ? `${displayWeight(exercise.targetWeight, unit)} ${unit}` : 'peso corporal'} · descanso {exercise.restSeconds || 90}s</small></span><span className="exercise-status">{draft[exerciseIndex]?.sets.filter((set) => set.status !== 'pendiente').length || 0}/{draft[exerciseIndex]?.sets.length || 0}</span><ChevronRight size={17} className={isOpen ? 'rotate-90' : ''} /></button><ExerciseGuide exerciseId={exercise.exerciseId} name={exercise.name} /></div>
         {isOpen && <div className="exercise-body"><div className="reference-row"><span><TrendingUp size={14} /> Última vez {previous?.sets?.[0] ? `${displayWeight(previous.sets[0].weight, unit)} ${unit} × ${previous.sets[0].repsAchieved}` : 'sin registro'}</span><span className="pr-label"><Trophy size={13} /> PR {best.weight ? `${displayWeight(best.weight, unit)} ${unit}` : '—'}</span><span className="rest-label"><Clock3 size={13} /> {exercise.restSeconds || 90}s</span></div><div className="sets-header"><span>Serie</span><span>{unit.toUpperCase()}</span><span>Reps</span><span>Estado</span></div>{draft[exerciseIndex]?.sets.map((set, index) => <div className="set-row-wrap" key={`${exercise.exerciseId}-${index}`}><div className={`set-row ${set.status !== 'pendiente' ? `set-${set.status}` : ''}`}><button type="button" className={`set-number ${set.setType || 'normal'}`} onClick={() => setOpenSetMenu(openSetMenu === `${exercise.exerciseId}-${index}` ? null : `${exercise.exerciseId}-${index}`)}>{index + 1}</button><input type="number" inputMode="decimal" value={displayWeight(set.weight, unit)} onChange={(event) => updateSet(exercise.exerciseId, index, { weight: parseWeight(event.target.value, unit) })} aria-label={`Peso serie ${index + 1}`} /><input type="number" inputMode="numeric" placeholder={String(exercise.targetReps)} value={set.repsAchieved} onChange={(event) => updateSet(exercise.exerciseId, index, { repsAchieved: event.target.value })} aria-label={`Repeticiones serie ${index + 1}`} /><button type="button" className="set-check" onClick={() => toggleSet(exercise, index)} aria-label={`Marcar serie ${index + 1}`}>{set.status === 'logrado' ? <Check size={17} /> : set.status === 'parcial' ? <span>½</span> : <span />}</button></div>{openSetMenu === `${exercise.exerciseId}-${index}` && <div className="set-menu"><span>Tipo de serie</span><button type="button" className={set.setType === 'warm' ? 'active' : ''} onClick={() => setType(exercise.exerciseId, index, 'warm')}>Warm set</button><button type="button" className={(!set.setType || set.setType === 'normal') ? 'active' : ''} onClick={() => setType(exercise.exerciseId, index, 'normal')}>Normal set</button><button type="button" className={set.setType === 'failure' ? 'active' : ''} onClick={() => setType(exercise.exerciseId, index, 'failure')}>Failure set</button><button type="button" className="remove-set-button" onClick={() => { removeSet(exercise.exerciseId, index); setOpenSetMenu(null) }}><Trash2 size={13} /> Quitar serie</button></div>}</div>)}<button type="button" className="add-set" onClick={() => addSet(exercise.exerciseId)}><Plus size={14} /> Añadir serie</button></div>}
       </GlassCard>
     })}</div>
@@ -392,6 +455,7 @@ function LoginModal({ onClose, notify }) {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('today')
+  const [selectedRoutineId, setSelectedRoutineId] = useState(INITIAL_ROUTINES[0]?.id || '')
   const [unit, setUnit] = useStoredState('weightUnit', 'kg')
   const [routines, setRoutines] = useStoredState('routines', INITIAL_ROUTINES)
   const [logs, setLogs] = useStoredState('workoutLogs', INITIAL_LOGS)
@@ -446,6 +510,6 @@ export default function App() {
     setLogs((items) => items.filter((item) => item.id !== id))
     if (user && remoteReady) deleteUserDocument('workoutLogs', user.uid, id).catch(() => notify('Eliminado localmente; no se pudo sincronizar', 'error'))
   }
-  const content = activeTab === 'today' ? <Today routines={routines} logs={logs} onSaveLog={saveLog} restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} onGoRoutines={() => setActiveTab('routines')} unit={unit} /> : activeTab === 'routines' ? <Routines routines={routines} setRoutines={updateRoutines} notify={notify} user={user} unit={unit} /> : activeTab === 'metrics' ? <Metrics logs={logs} routines={routines} notify={notify} user={user} onUpdateLog={updateLog} onDeleteLog={removeLog} unit={unit} /> : activeTab === 'photos' ? <Photos notify={notify} user={user} /> : <Profile restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} logs={logs} routines={routines} setRoutines={updateRoutines} setLogs={setLogs} unit={unit} />
+  const content = activeTab === 'today' ? <Today routines={routines} logs={logs} onSaveLog={saveLog} restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} onGoRoutines={() => setActiveTab('routines')} selectedRoutineId={selectedRoutineId} onSelectRoutine={setSelectedRoutineId} unit={unit} /> : activeTab === 'routines' ? <Routines routines={routines} setRoutines={updateRoutines} notify={notify} user={user} unit={unit} onSelectRoutine={(routineId) => { setSelectedRoutineId(routineId); setActiveTab('today') }} /> : activeTab === 'metrics' ? <MetricsEnhanced logs={logs} routines={routines} notify={notify} user={user} onUpdateLog={updateLog} onDeleteLog={removeLog} unit={unit} /> : activeTab === 'photos' ? <Photos notify={notify} user={user} /> : <Profile restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} logs={logs} routines={routines} setRoutines={updateRoutines} setLogs={setLogs} unit={unit} />
   return <div className="app-shell"><div className="ambient ambient-one" /><div className="ambient ambient-two" /><main>{content}</main><BottomNav active={activeTab} onChange={setActiveTab} /><Toast toast={toast} onClose={() => setToast(null)} /></div>
 }
