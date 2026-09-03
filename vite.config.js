@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite'
 
 export default defineConfig({
-  base: '/gimnasio/',
+  base: '/PaginaGimnasio/',
   define: {
     'import.meta.env.VITE_FIREBASE_API_KEY': JSON.stringify(process.env.GOOGLE_API_KEY || process.env.VITE_FIREBASE_API_KEY || ''),
   },
