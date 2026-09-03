@@ -4,7 +4,7 @@ import { getAuth } from 'firebase/auth'
 import { getFirestore, doc, getDoc, setDoc } from 'firebase/firestore'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'AIzaSyBpcV_EzBVD8BAYgZxJktD2_9Ics1n3fls',
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'gimnasio-70f9b.firebaseapp.com',
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'gimnasio-70f9b',
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'gimnasio-70f9b.firebasestorage.app',
