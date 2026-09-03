@@ -197,12 +197,12 @@ option { background: #171a27; }
 .stat strong { display: block; font: 600 21px 'Space Grotesk'; }
 .stat strong small { font: 500 10px 'DM Sans'; color: #777b8c; margin-left: 2px; }
 .stat span { color: var(--muted); display: block; font-size: 10px; margin-top: 3px; white-space: nowrap; }
-.chart-card { padding: 21px; }
-.chart-value { display: flex; align-items: center; gap: 12px; margin: 22px 0 8px; }
+.chart-card { padding: 21px; overflow: hidden; }
+.chart-value { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 18px 0 8px; flex-wrap: wrap; }
 .chart-value b, .body-current b { font: 600 33px 'Space Grotesk'; letter-spacing: -.06em; }
 .chart-value b small, .body-current b small { color: var(--muted); font: 500 13px 'DM Sans'; letter-spacing: 0; }
-.body-chart-scene { position: relative; padding-top: 10px; }
-.body-chart-svg { display: block; width: 100%; height: 170px; }
+.body-chart-scene { position: relative; padding-top: 10px; width: 100%; overflow: hidden; }
+.body-chart-svg { display: block; width: 100%; height: 170px; overflow: visible; }
 .metric-tooltip { position: absolute; min-width: 110px; padding: 8px 10px; border-radius: 12px; background: rgba(19, 22, 31, .92); border: 1px solid rgba(124,108,255,.35); box-shadow: 0 12px 30px rgba(0,0,0,.2); transform: translateX(-50%); }
 .metric-tooltip strong { display: block; color: #fff; font-size: 10px; }
 .metric-tooltip span { display: block; color: var(--accent); font: 600 12px 'Space Grotesk'; margin-top: 4px; }
@@ -223,7 +223,7 @@ option { background: #171a27; }
 .body-chart-empty h3 { font: 600 20px 'Space Grotesk'; margin: 10px 0 8px; }
 .body-chart-empty p { color: var(--muted); font-size: 12px; }
 .positive { display: inline-flex; align-items: center; gap: 3px; color: var(--teal); font-size: 11px; }
-.mini-chart { display: block; width: 100%; height: 150px; overflow: visible; margin-top: 8px; }
+.mini-chart { display: block; width: 100%; height: 140px; overflow: visible; margin-top: 12px; }
 .chart-labels { display: flex; justify-content: space-between; color: #656979; font-size: 10px; margin-top: 7px; }
 .card-subtitle { color: var(--muted); font-size: 11px; margin: 5px 0 0; }
 .chart-period { color: #797d8d; font-size: 10px; }
@@ -233,17 +233,17 @@ option { background: #171a27; }
 .progress-toggle strong { display: block; font-size: 16px; margin-top: 4px; }
 .progress-toggle small { display: block; color: var(--muted); font-size: 10px; margin-top: 3px; }
 .progress-expanded { margin-top: 15px; overflow: hidden; animation: panel-unfold .42s cubic-bezier(.2,.7,.2,1) both; }
-.exercise-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 19px; }
-.exercise-picker-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; background: rgba(255,255,255,.035); border: 1px solid transparent; border-radius: 15px; text-align: left; transition: .2s; }
+.exercise-picker { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 19px; }
+.exercise-picker-card { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px; background: rgba(255,255,255,.035); border: 1px solid transparent; border-radius: 15px; text-align: left; transition: .2s; width: 100%; overflow: hidden; }
 .exercise-picker-card:hover { background: rgba(255,255,255,.07); }
 .exercise-picker-card.selected { background: var(--accent-soft); border-color: rgba(124,108,255,.42); }
-.picker-glyph { display: grid; place-items: center; width: 28px; height: 28px; color: var(--accent); background: rgba(255,255,255,.07); border-radius: 9px; font: 600 13px 'Space Grotesk'; text-transform: uppercase; }
-.picker-info { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
-.picker-info b { overflow: hidden; width: 100%; color: #d3d3df; font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.picker-glyph { display: grid; place-items: center; width: 28px; height: 28px; color: var(--accent); background: rgba(255,255,255,.07); border-radius: 9px; font: 600 13px 'Space Grotesk'; text-transform: uppercase; flex-shrink: 0; }
+.picker-info { display: flex; min-width: 0; width: 100%; flex-direction: column; gap: 3px; overflow: hidden; }
+.picker-info b { display: block; width: 100%; color: #d3d3df; font-size: 11px; font-weight: 600; line-height: 1.35; word-break: break-word; hyphens: auto; }
 .picker-info small { color: var(--muted); font-size: 9px; }
-.picker-value { display: flex; align-items: baseline; gap: 4px; }
+.picker-value { display: flex; align-items: baseline; gap: 4px; width: 100%; flex-wrap: wrap; }
 .picker-value strong { color: #fff; font: 600 17px 'Space Grotesk'; }
-.picker-value small { overflow: hidden; color: #747889; font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+.picker-value small { color: #747889; font-size: 9px; word-break: break-word; }
 .metrics-calendar-wrap { max-width: 640px; margin: 18px auto 0; }
 .calendar-card, .calendar-detail { display: inline-block; width: calc(50% - 8px); padding: 18px; margin-top: 15px; vertical-align: top; }
 .calendar-card { margin-right: 12px; }
