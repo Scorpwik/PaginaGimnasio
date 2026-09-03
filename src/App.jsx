@@ -573,7 +573,12 @@ export default function App() {
           loadUserCollection('progressPhotos', currentUser.uid),
           loadUserCollection('bodyMetrics', currentUser.uid),
         ])
-        if (remoteRoutines.length) setRoutines(remoteRoutines)
+        if (remoteRoutines.length) {
+          setRoutines(remoteRoutines)
+        } else {
+          // Si el usuario recién inicia sesión y no tiene rutinas en la nube, subimos sus rutinas locales por defecto
+          routines.forEach((item) => saveUserDocument('routines', currentUser.uid, item).catch(() => {}))
+        }
         if (remoteLogs.length) setLogs(remoteLogs)
         if (remotePhotos.length) writeStore('progressPhotos', remotePhotos)
         if (remoteMetrics.length) writeStore('bodyMetrics', remoteMetrics)
