@@ -57,9 +57,17 @@ function Toast({ toast, onClose }) {
 
 function BottomNav({ active, onChange }) {
   const activeIndex = Math.max(0, TABS.findIndex((tab) => tab.id === active))
+  const handleClick = (id) => {
+    if (active === id) {
+      // Si el usuario vuelve a tocar la pestaña activa, forzamos la recarga de la página
+      window.location.reload()
+    } else {
+      onChange(id)
+    }
+  }
   return <nav className="bottom-nav" aria-label="Navegación principal" style={{ '--active-index': activeIndex }}>
     <span className="nav-indicator" aria-hidden="true" />
-    {TABS.map(({ id, label, icon: Icon }) => <button key={id} className={active === id ? 'nav-item active' : 'nav-item'} onClick={() => onChange(id)}>
+    {TABS.map(({ id, label, icon: Icon }) => <button key={id} className={active === id ? 'nav-item active' : 'nav-item'} onClick={() => handleClick(id)}>
       <Icon size={21} strokeWidth={active === id ? 2.5 : 1.8} /><span>{label}</span>
     </button>)}
   </nav>
@@ -536,7 +544,19 @@ function LoginModal({ onClose, notify }) {
 }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('today')
+  const [activeTab, setActiveTabState] = useState(() => {
+    try {
+      return sessionStorage.getItem('gym-tracker:activeTab') || 'today'
+    } catch {
+      return 'today'
+    }
+  })
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab)
+    try {
+      sessionStorage.setItem('gym-tracker:activeTab', tab)
+    } catch {}
+  }
   const [routines, setRoutines] = useStoredState('routines', INITIAL_ROUTINES)
   const [logs, setLogs] = useStoredState('workoutLogs', INITIAL_LOGS)
   const [exerciseLibrary, setExerciseLibrary] = useStoredState('exerciseLibrary', LIBRARY)
