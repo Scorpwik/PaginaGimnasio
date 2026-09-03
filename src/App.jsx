@@ -483,18 +483,37 @@ function LoginModal({ onClose, notify }) {
   const [mode, setMode] = useState('login')
   const submit = async (event) => {
     event.preventDefault()
-    if (!isFirebaseConfigured || !auth) { notify('Añade la configuración de Firebase para iniciar sesión', 'error'); return }
+    console.log('[Firebase Auth Debug] Intentando iniciar sesión / crear cuenta...')
+    console.log('[Firebase Auth Debug] isFirebaseConfigured:', isFirebaseConfigured)
+    console.log('[Firebase Auth Debug] auth objeto:', auth)
+    console.log('[Firebase Auth Debug] apiKey presente:', Boolean(import.meta.env.VITE_FIREBASE_API_KEY))
+
+    if (!isFirebaseConfigured || !auth) {
+      console.error('[Firebase Auth Error] Firebase no está completamente configurado. Falta el apiKey (VITE_FIREBASE_API_KEY).')
+      notify('Añade la configuración de Firebase para iniciar sesión', 'error')
+      return
+    }
+
     const form = new FormData(event.currentTarget)
+    const email = form.get('email')
+    const password = form.get('password')
+
     try {
-      if (mode === 'login') await signInWithEmailAndPassword(auth, form.get('email'), form.get('password'))
-      else await createUserWithEmailAndPassword(auth, form.get('email'), form.get('password'))
+      if (mode === 'login') {
+        await signInWithEmailAndPassword(auth, email, password)
+        console.log('[Firebase Auth Exito] Sesión iniciada correctamente para:', email)
+      } else {
+        await createUserWithEmailAndPassword(auth, email, password)
+        console.log('[Firebase Auth Exito] Cuenta creada correctamente para:', email)
+      }
       notify(mode === 'login' ? 'Sesión iniciada' : 'Cuenta creada')
       onClose()
     } catch (error) {
-      notify(error.code === 'auth/invalid-credential' ? 'Email o contraseña incorrectos' : 'No se pudo iniciar sesión. Revisa tus datos.', 'error')
+      console.error('[Firebase Auth Error Details]:', error.code, error.message, error)
+      notify(error.code === 'auth/invalid-credential' ? 'Email o contraseña incorrectos' : `Error al iniciar sesión: ${error.message || error.code}`, 'error')
     }
   }
-  return <Modal title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'} onClose={onClose}><form onSubmit={submit}><label>Email<input type="email" required placeholder="tu@email.com" /></label><label>Contraseña<input type="password" required minLength="6" placeholder="••••••••" /></label><Button type="submit" className="full-button"><LogIn size={16} /> Continuar</Button></form><button className="switch-auth" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? '¿No tienes cuenta? Crear una' : 'Ya tengo una cuenta'}</button></Modal>
+  return <Modal title={mode === 'login' ? 'Iniciar sesión' : 'Crear cuenta'} onClose={onClose}><form onSubmit={submit}><label>Email<input type="email" name="email" required placeholder="tu@email.com" /></label><label>Contraseña<input type="password" name="password" required minLength="6" placeholder="••••••••" /></label><Button type="submit" className="full-button"><LogIn size={16} /> Continuar</Button></form><button className="switch-auth" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}>{mode === 'login' ? '¿No tienes cuenta? Crear una' : 'Ya tengo una cuenta'}</button></Modal>
 }
 
 export default function App() {
