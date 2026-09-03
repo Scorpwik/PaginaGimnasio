@@ -1,6 +1,5 @@
 import { collection, deleteDoc, doc, getDocs, query, setDoc, where } from 'firebase/firestore'
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage'
-import { db, storage } from './config'
+import { db } from './config'
 
 export async function loadUserCollection(name, uid) {
   if (!db || !uid) return []
@@ -19,8 +18,6 @@ export async function deleteUserDocument(name, uid, id) {
 }
 
 export async function uploadUserPhoto(uid, file, photoId) {
-  if (!storage || !uid || !file) return null
-  const fileRef = ref(storage, `progressPhotos/${uid}/${photoId}.jpg`)
-  await uploadBytes(fileRef, file, { contentType: 'image/jpeg' })
-  return getDownloadURL(fileRef)
+  if (!uid || !file || !photoId) return null
+  return null
 }
