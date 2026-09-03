@@ -207,8 +207,9 @@ option { background: #171a27; }
 .metric-tooltip strong { display: block; color: #fff; font-size: 10px; }
 .metric-tooltip span { display: block; color: var(--accent); font: 600 12px 'Space Grotesk'; margin-top: 4px; }
 .body-current { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-top: 20px; }
-.body-history-list { display: grid; gap: 8px; margin-top: 18px; }
-.body-history-toggle { margin: 18px auto 0; }
+.body-history-list { display: grid; gap: 8px; margin-top: 18px; animation: panel-unfold .34s cubic-bezier(.2,.7,.2,1) both; }
+.body-history-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 18px auto 0; padding: 8px 10px; color: var(--accent); background: transparent; border: 0; border-radius: 10px; box-shadow: none; font-size: 11px; appearance: none; }
+.body-history-toggle:hover { color: #fff; background: rgba(124,108,255,.08); }
 .body-history-toggle svg:last-child { transition: transform .2s ease; }
 .body-history-row { display: grid; grid-template-columns: minmax(90px, 1fr) auto auto; align-items: center; gap: 12px; width: 100%; padding: 11px 12px; color: #dfe1ee; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 12px; text-align: left; }
 .body-history-row span { color: var(--muted); font-size: 10px; }
