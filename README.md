@@ -15,9 +15,11 @@ La aplicación funciona en modo demo sin credenciales: las rutinas, sesiones, m�
 ## Firebase
 
 1. Crea una aplicación web en Firebase.
-2. Habilita Authentication (Email/Password), Firestore y Storage.
-3. Copia las credenciales al archivo `.env` usando las variables `VITE_FIREBASE_*`.
-4. Publica `firestore.rules` y `storage.rules` desde Firebase CLI.
+2. En Authentication → Sign-in method habilita **Anonymous** para la sincronización automática y **Email/Password** si quieres iniciar sesión manualmente desde Perfil.
+3. Habilita Firestore y Storage.
+4. En Replit, guarda la API key como el secreto `GOOGLE_API_KEY`. Los demás identificadores públicos de este proyecto ya están configurados como variables `VITE_FIREBASE_*`.
+5. Para desarrollo fuera de Replit, copia las variables de `.env.example` a `.env` y completa `VITE_FIREBASE_API_KEY`.
+6. Publica `firestore.rules` y `storage.rules` desde Firebase CLI.
 
 El modelo está preparado para múltiples usuarios: cada documento incluye `userId` y las reglas restringen el acceso al usuario autenticado.
 

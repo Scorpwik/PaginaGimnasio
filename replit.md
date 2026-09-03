@@ -9,4 +9,4 @@ npm install
 npm run dev
 ```
 
-El modo demo no necesita credenciales: las rutinas, sesiones, métricas, fotos y biblioteca global de ejercicios se guardan en el `localStorage` del navegador. Firebase es opcional y se activa con las variables `VITE_FIREBASE_*` descritas en `README.md`.
+El modo demo no necesita credenciales: las rutinas, sesiones, métricas, fotos y biblioteca global de ejercicios se guardan en el `localStorage` del navegador. Firebase se activa con el secreto `GOOGLE_API_KEY` y las variables públicas `VITE_FIREBASE_*` configuradas en el entorno compartido.
