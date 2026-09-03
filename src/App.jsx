@@ -546,12 +546,14 @@ export default function App() {
   const [remoteReady, setRemoteReady] = useState(false)
   const [firebaseAuthError, setFirebaseAuthError] = useState(false)
   useEffect(() => {
-    if (readStore('routine-plan-v2', false)) return
+    if (readStore('routine-plan-v3', false)) return
     const seededIds = new Set(INITIAL_ROUTINES.map((item) => item.id))
-    const next = routines.map((routine) => seededIds.has(routine.id) ? INITIAL_ROUTINES.find((item) => item.id === routine.id) : routine)
+    const next = routines
+      .filter((routine) => routine.id !== 'lower-core')
+      .map((routine) => seededIds.has(routine.id) ? INITIAL_ROUTINES.find((item) => item.id === routine.id) : routine)
     INITIAL_ROUTINES.forEach((routine) => { if (!next.some((item) => item.id === routine.id)) next.push(routine) })
     setRoutines(next)
-    writeStore('routine-plan-v2', true)
+    writeStore('routine-plan-v3', true)
   }, [])
   const notify = (message, type = 'success') => setToast({ message, type })
   useEffect(() => {
@@ -575,11 +577,15 @@ export default function App() {
           loadUserCollection('bodyMetrics', currentUser.uid),
           loadUserCollection('bodyMeasurements', currentUser.uid),
         ])
-        if (remoteRoutines.length) {
+        const hasOldRoutine = remoteRoutines.some((r) => r.id === 'lower-core')
+        if (hasOldRoutine) {
+          await deleteUserDocument('routines', currentUser.uid, 'lower-core')
+        }
+        if (remoteRoutines.length && !hasOldRoutine) {
           setRoutines(remoteRoutines)
         } else {
-          // Subir rutinas iniciales a la nube si la cuenta está vacía
-          routines.forEach((item) => saveUserDocument('routines', currentUser.uid, item).catch(() => {}))
+          INITIAL_ROUTINES.forEach((item) => saveUserDocument('routines', currentUser.uid, item).catch(() => {}))
+          setRoutines(INITIAL_ROUTINES)
         }
         if (remoteLogs.length) setLogs(remoteLogs)
         if (remotePhotos.length) writeStore('progressPhotos', remotePhotos)
