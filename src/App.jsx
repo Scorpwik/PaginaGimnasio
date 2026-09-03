@@ -567,42 +567,56 @@ export default function App() {
       setUser(currentUser)
       setFirebaseAuthError(false)
       try {
-        const [remoteRoutines, remoteLogs, remotePhotos, remoteMetrics] = await Promise.all([
+        const [remoteRoutines, remoteLogs, remotePhotos, remoteMetrics, remoteMeasurements] = await Promise.all([
           loadUserCollection('routines', currentUser.uid),
           loadUserCollection('workoutLogs', currentUser.uid),
           loadUserCollection('progressPhotos', currentUser.uid),
           loadUserCollection('bodyMetrics', currentUser.uid),
+          loadUserCollection('bodyMeasurements', currentUser.uid),
         ])
         if (remoteRoutines.length) {
           setRoutines(remoteRoutines)
         } else {
-          // Si el usuario recién inicia sesión y no tiene rutinas en la nube, subimos sus rutinas locales por defecto
+          // Subir rutinas iniciales a la nube si la cuenta está vacía
           routines.forEach((item) => saveUserDocument('routines', currentUser.uid, item).catch(() => {}))
         }
         if (remoteLogs.length) setLogs(remoteLogs)
         if (remotePhotos.length) writeStore('progressPhotos', remotePhotos)
         if (remoteMetrics.length) writeStore('bodyMetrics', remoteMetrics)
-      } catch {
+        if (remoteMeasurements.length) writeStore('bodyMeasurements', remoteMeasurements)
+      } catch (error) {
+        console.error('[Firebase Load Error]', error)
         notify('No se pudo cargar tu nube; seguimos con los datos locales', 'error')
       } finally { setRemoteReady(true) }
     })
   }, [])
+
   const updateRoutines = (updater) => setRoutines((items) => {
     const next = typeof updater === 'function' ? updater(items) : updater
-    if (user && remoteReady) next.forEach((item) => saveUserDocument('routines', user.uid, item).catch(() => {}))
+    if (user && remoteReady) {
+      // Detectar elementos eliminados y borrarlos de Firestore
+      const currentIds = new Set(next.map((item) => item.id))
+      items.forEach((item) => {
+        if (!currentIds.has(item.id)) {
+          deleteUserDocument('routines', user.uid, item.id).catch(() => {})
+        }
+      })
+      next.forEach((item) => saveUserDocument('routines', user.uid, item).catch(() => {}))
+    }
     return next
   })
+
   const saveLog = (log) => {
     setLogs((items) => [...items.filter((item) => item.id !== log.id), log])
-    if (user && remoteReady) saveUserDocument('workoutLogs', user.uid, log).catch(() => notify('Guardado local; no se pudo sincronizar', 'error'))
+    if (user) saveUserDocument('workoutLogs', user.uid, log).catch(() => notify('Guardado local; no se pudo sincronizar', 'error'))
   }
   const updateLog = (next) => {
     setLogs((items) => items.map((item) => item.id === next.id ? next : item))
-    if (user && remoteReady) saveUserDocument('workoutLogs', user.uid, next).catch(() => notify('Cambio local; no se pudo sincronizar', 'error'))
+    if (user) saveUserDocument('workoutLogs', user.uid, next).catch(() => notify('Cambio local; no se pudo sincronizar', 'error'))
   }
   const removeLog = (id) => {
     setLogs((items) => items.filter((item) => item.id !== id))
-    if (user && remoteReady) deleteUserDocument('workoutLogs', user.uid, id).catch(() => notify('Eliminado localmente; no se pudo sincronizar', 'error'))
+    if (user) deleteUserDocument('workoutLogs', user.uid, id).catch(() => notify('Eliminado localmente; no se pudo sincronizar', 'error'))
   }
   const content = activeTab === 'today' ? <Today routines={routines} logs={logs} onSaveLog={saveLog} restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} onGoRoutines={() => setActiveTab('routines')} /> : activeTab === 'routines' ? <Routines routines={routines} setRoutines={updateRoutines} notify={notify} user={user} library={exerciseLibrary} onLibraryChange={setExerciseLibrary} /> : activeTab === 'metrics' ? <MetricsEnhanced logs={logs} routines={routines} notify={notify} user={user} onUpdateLog={updateLog} onDeleteLog={removeLog} /> : activeTab === 'photos' ? <PhotosEnhanced notify={notify} user={user} /> : <Profile restSeconds={restSeconds} setRestSeconds={setRestSeconds} notify={notify} logs={logs} routines={routines} setRoutines={updateRoutines} setLogs={setLogs} library={exerciseLibrary} setLibrary={setExerciseLibrary} user={user} firebaseAuthError={firebaseAuthError} />
   return <div className="app-shell"><div className="ambient ambient-one" /><div className="ambient ambient-two" /><main>{content}</main><BottomNav active={activeTab} onChange={setActiveTab} /><Toast toast={toast} onClose={() => setToast(null)} /></div>
